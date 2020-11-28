@@ -48,7 +48,7 @@ static int lept_parse_value(lept_context *c, lept_value *v) {
         case 'n':  return lept_parse_null(c, v);
         case 't':  return lept_parse_true(c, v);
         case 'f':  return lept_parse_false(c, v);
-        case '\0': return LPET_PARSE_EXPECT_VALUE;
+        case '\0': return LEPT_PARSE_EXPECT_VALUE;
         default:   return LEPT_PARSE_INVALID_VALUE;
     }
     return LEPT_PARSE_OK;
@@ -70,5 +70,6 @@ int lept_parse(lept_value *v, const char *json) {
 }
 
 lept_type lept_get_value(const lept_value *v) {
+    assert(v != NULL);
     return v->type;
 }
