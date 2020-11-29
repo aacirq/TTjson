@@ -108,7 +108,7 @@ static void test_parse_number() {
     TEST_NUMBER(-1.0, "-1");
     TEST_NUMBER(1.5, "1.5");
     TEST_NUMBER(-1.5, "-1.5");
-    TEST_NUMBER(3.1416, "3.1415");
+    TEST_NUMBER(3.1416, "3.1416");
     TEST_NUMBER(1E10, "1E10");
     TEST_NUMBER(1e10, "1e10");
     TEST_NUMBER(1E+10, "1E+10");
@@ -117,7 +117,7 @@ static void test_parse_number() {
     TEST_NUMBER(-1e10, "-1e10");
     TEST_NUMBER(-1E+10, "-1E+10");
     TEST_NUMBER(-1E-10, "-1E-10");
-    TEST_NUBMER(1.234E+10, "1.234E+10");
+    TEST_NUMBER(1.234E+10, "1.234E+10");
     TEST_NUMBER(1.234E-10, "1.234E-10");
     TEST_NUMBER(0.0, "1e-10000"); 
 }
