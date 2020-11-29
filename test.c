@@ -69,11 +69,13 @@ static void test_parse_invalid_value() {
     TEST_ERROR(LEPT_PARSE_INVALID_VALUE, "nul");
     TEST_ERROR(LEPT_PARSE_INVALID_VALUE, "n");
     TEST_ERROR(LEPT_PARSE_INVALID_VALUE, "?");
-#if 0
+#if 1
     /* invalid number */
     TEST_ERROR(LEPT_PARSE_INVALID_VALUE, "+0");
     TEST_ERROR(LEPT_PARSE_INVALID_VALUE, "+1");
     TEST_ERROR(LEPT_PARSE_INVALID_VALUE, ".123");
+    TEST_ERROR(LEPT_PARSE_INVALID_VALUE, "1.1e");
+    TEST_ERROR(LEPT_PARSE_INVALID_VALUE, "1.1e+");
     TEST_ERROR(LEPT_PARSE_INVALID_VALUE, "1.");
     TEST_ERROR(LEPT_PARSE_INVALID_VALUE, "INF");
     TEST_ERROR(LEPT_PARSE_INVALID_VALUE, "inf");
@@ -84,7 +86,7 @@ static void test_parse_invalid_value() {
 
 static void test_parse_root_not_singular() {
     TEST_ERROR(LEPT_PARSE_ROOT_NOT_SINGULAR, "null x");
-#if 0
+#if 1
     /* invalid number */
     TEST_ERROR(LEPT_PARSE_ROOT_NOT_SINGULAR, "0123");
     TEST_ERROR(LEPT_PARSE_ROOT_NOT_SINGULAR, "0x0");
@@ -93,7 +95,7 @@ static void test_parse_root_not_singular() {
 }
 
 static void test_parse_number_too_big() {
-#if 0
+#if 1
     TEST_ERROR(LEPT_PARSE_NUMBER_TOO_BIG, "1e309");
     TEST_ERROR(LEPT_PARSE_NUMBER_TOO_BIG, "-1e309");
 #endif
@@ -119,7 +121,16 @@ static void test_parse_number() {
     TEST_NUMBER(-1E-10, "-1E-10");
     TEST_NUMBER(1.234E+10, "1.234E+10");
     TEST_NUMBER(1.234E-10, "1.234E-10");
-    TEST_NUMBER(0.0, "1e-10000"); 
+    // TEST_NUMBER(0.0, "1e-10000");
+    __int64_t i;
+    i = 0x0000000000000001;
+    TEST_NUMBER(*(double *)&i, "4.9406564584124654e-324"); /* Min. subnormal positive double */
+    i = 0x000FFFFFFFFFFFFF;
+    TEST_NUMBER(*(double *)&i, "2.2250738585072009e-308"); /* Max. subnormal double */
+    i = 0x0010000000000000;
+    TEST_NUMBER(*(double *)&i, "2.2250738585072014e-308"); /* Min. normal positive double */
+    i = 0x7FEFFFFFFFFFFFFF;
+    TEST_NUMBER(*(double *)&i, "1.7976931348623157e308"); /* Max. double */
 }
 
 /* ... */
