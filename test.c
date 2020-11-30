@@ -1,6 +1,6 @@
 #include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+// #include <stdlib.h>
+// #include <string.h>
 
 #include "leptjson.h"
 
@@ -20,7 +20,6 @@ static int test_pass = 0;
     } while(0)
 
 #define EXPECT_EQ_INT(expect, actual) EXPECT_EQ_BASE((expect) == (actual), expect, actual, "%d")
-
 #define EXPECT_EQ_DOUBLE(expect, actual) EXPECT_EQ_BASE((expect) == actual, expect, actual, "%f")
 
 #define TEST_ERROR(error, json) \
@@ -122,7 +121,7 @@ static void test_parse_number() {
     TEST_NUMBER(1.234E+10, "1.234E+10");
     TEST_NUMBER(1.234E-10, "1.234E-10");
     // TEST_NUMBER(0.0, "1e-10000");
-    __int64_t i;
+    int64_t i;
     i = 0x0000000000000001;
     TEST_NUMBER(*(double *)&i, "4.9406564584124654e-324"); /* Min. subnormal positive double */
     i = 0x000FFFFFFFFFFFFF;
