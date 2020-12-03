@@ -134,7 +134,7 @@ static void test_parse_number() {
     TEST_NUMBER(-1E-10, "-1E-10");
     TEST_NUMBER(1.234E+10, "1.234E+10");
     TEST_NUMBER(1.234E-10, "1.234E-10");
-    // TEST_NUMBER(0.0, "1e-10000");
+    TEST_NUMBER(0.0, "1e-10000");
     int64_t i;
     i = 0x0000000000000001;
     TEST_NUMBER(*(double *)&i, "4.9406564584124654e-324"); /* Min. subnormal positive double */
@@ -147,12 +147,16 @@ static void test_parse_number() {
 }
 
 static void test_parse_string() {
-    TEST_STRING("", "\"\"");
-    TEST_STRING("Hello", "\"Hello\"");
-#if 0
-    TEST_STRING("Hello\nWorld", "\"Hello\nWorld\"");
-    TEST_STRING("\" \\ / \b \f \n \r \t", "\"\\\" \\\\ / \\b \\f \\n \\r \\t\"")
-#endif
+    TEST_STRING("",                        "\"\"");
+    TEST_STRING("Hello",                   "\"Hello\"");
+    TEST_STRING("Hello\nWorld",            "\"Hello\\nWorld\"");
+    TEST_STRING("\" \\ / \b \f \n \r \t",  "\"\\\" \\\\ / \\b \\f \\n \\r \\t\"");
+    TEST_STRING("Hello\0World",            "\"Hello\\u0000World\"");
+    TEST_STRING("\x24",                    "\"\\u0024\"");         /* Dollar sign U+0024 */
+    TEST_STRING("\xC2\xA2",                "\"\\u00A2\"");     /* Cents sign U+00A2 */
+    TEST_STRING("\xE2\x82\xAC",            "\"\\u20AC\""); /* Euro sign U+20AC */
+    TEST_STRING("\xF0\x9D\x84\x9E",        "\"\\uD834\\uDD1E\"");  /* G clef sign U+1D11E */
+    TEST_STRING("\xF0\x9D\x84\x9E",        "\"\\ud834\\udd1e\"");  /* G clef sign U+1D11E */
 }
 
 static void test_parse_invalid_string_escape() {
