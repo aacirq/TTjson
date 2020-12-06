@@ -31,6 +31,14 @@ static int test_pass = 0;
   do { EXPECT_EQ_BASE(memcmp(expect, string, alength) == 0, \
                       expect, string, "%s"); \
   } while(0)
+#if defined(_MSC_VER)
+#define EXPECT_EQ_SIZE_T(expect, actual) \
+        EXPECT_EQ_BASE((expect) == (actual), (expect), (actual), "%Iu")
+#else
+#define EXPECT_EQ_SIZE_T(expect, actual) \
+        EXPECT_EQ_BASE((expect) == (actual), (expect), (actual), "%zu")
+#endif
+
 
 #define TEST_ERROR(error, json) \
   do { \
@@ -99,6 +107,10 @@ static void test_parse_invalid_value() {
   TEST_ERROR(LEPT_PARSE_INVALID_VALUE, "inf");
   TEST_ERROR(LEPT_PARSE_INVALID_VALUE, "NAN");
   TEST_ERROR(LEPT_PARSE_INVALID_VALUE, "nan");
+
+  // invalid array
+  TEST_ERROR(LEPT_PARSE_INVALID_VALUE, "[1,]");
+  TEST_ERROR(LEPT_PARSE_INVALID_VALUE, "[\"a\", nul]");
 }
 
 static void test_parse_root_not_singular() {
@@ -171,6 +183,52 @@ static void test_parse_invalid_string_char() {
   TEST_ERROR(LEPT_PARSE_INVALID_STRING_CHAR, "\"\x1F\"");
 }
 
+static void test_parse_array() {
+  lept_value v;
+  lept_init(&v);
+  EXPECT_EQ_INT(LEPT_PARSE_OK, lept_parse(&v, "[ ]"));
+  EXPECT_EQ_INT(LEPT_ARRAY, lept_get_type(&v));
+  EXPECT_EQ_SIZE_T((size_t)0, lept_get_array_size(&v));
+  lept_free(&v);
+
+  //
+  // case 1
+  lept_init(&v);
+  EXPECT_EQ_INT(LEPT_PARSE_OK,
+                lept_parse(&v, "[ null , false , true , 123 , \"abc\" ]"));
+  EXPECT_EQ_INT(LEPT_ARRAY, lept_get_type(&v));
+  EXPECT_EQ_INT(5, (int)lept_get_array_size(&v));
+  lept_value *e;
+  EXPECT_EQ_INT(LEPT_NULL,   lept_get_type(lept_get_array_element(&v, 0)));
+  EXPECT_EQ_INT(LEPT_FALSE,  lept_get_type(lept_get_array_element(&v, 1)));
+  EXPECT_EQ_INT(LEPT_TRUE,   lept_get_type(lept_get_array_element(&v, 2)));
+  EXPECT_EQ_INT(LEPT_NUMBER, lept_get_type(lept_get_array_element(&v, 3)));
+  EXPECT_EQ_INT(LEPT_STRING, lept_get_type(lept_get_array_element(&v, 4)));
+  EXPECT_EQ_DOUBLE(123.0, lept_get_number(lept_get_array_element(&v, 3)));
+  EXPECT_EQ_STRING("abc", lept_get_string(lept_get_array_element(&v, 4)),
+                   lept_get_string_length(lept_get_array_element(&v, 4)));
+  lept_free(&v);
+
+  //
+  // case 2
+  lept_init(&v);
+  lept_value *sub_e;
+  EXPECT_EQ_INT(LEPT_PARSE_OK,
+                lept_parse(&v, "[ [ ] , [ 0 ] , [ 0 , 1 ] , [ 0 , 1 , 2 ] ]"));
+  EXPECT_EQ_INT(LEPT_ARRAY, lept_get_type(&v));
+  for (size_t index = 0; index < lept_get_array_size(&v); ++index) {
+    e = lept_get_array_element(&v, index);
+    EXPECT_EQ_INT(LEPT_ARRAY, lept_get_type(e));
+    EXPECT_EQ_SIZE_T(index, lept_get_array_size(e));
+    for (size_t j = 0; j < index; ++j) {
+      sub_e = lept_get_array_element(e, j);
+      EXPECT_EQ_INT(LEPT_NUMBER, lept_get_type(sub_e));
+      EXPECT_EQ_DOUBLE((double)j, lept_get_number(sub_e));
+    }
+  }
+  lept_free(&v);
+}
+
 static void test_access_string() {
   lept_value v;
   lept_init(&v);
@@ -213,6 +271,7 @@ static void test_parse() {
   test_parse_string();
   test_parse_invalid_string_escape();
   test_parse_invalid_string_char();
+  test_parse_array();
 
   test_access_string();
   test_access_boolean();
