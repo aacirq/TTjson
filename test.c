@@ -259,6 +259,100 @@ static void test_access_number() {
   lept_free(&v);
 }
 
+static void test_parse_object() {
+  lept_value v;
+
+  lept_init(&v);
+  EXPECT_EQ_INT(LEPT_PARSE_OK, lept_parse(&v, "{ }"));
+  EXPECT_EQ_INT(LEPT_OBJECT, lept_get_type(&v));
+  EXPECT_EQ_SIZE_T((size_t)0, lept_get_object_size(&v));
+  lept_free(&v);
+
+  lept_init(&v);
+  char *json_txt = " { "
+                   "    \"n\" : null , "
+                   "    \"f\" : false , "
+                   "    \"t\" : true , "
+                   "    \"i\" : 123 , "
+                   "    \"s\" : \"abc\", "
+                   "    \"a\" : [ 1, 2, 3 ],"
+                   "    \"o\" : { \"1\" : 1, \"2\" : 2, \"3\" : 3 }"
+                   " } ";
+  EXPECT_EQ_INT(LEPT_PARSE_OK, lept_parse(&v, json_txt));
+  EXPECT_EQ_INT(LEPT_OBJECT, lept_get_type(&v));
+  EXPECT_EQ_SIZE_T((size_t)7, lept_get_object_size(&v));
+  // no.0 member "n"
+  EXPECT_EQ_STRING("n", lept_get_object_key(&v, 0),
+                   lept_get_object_key_length(&v, 0));
+  EXPECT_EQ_INT(LEPT_NULL, lept_get_type(lept_get_object_value(&v, 0)));
+  // no.1 member "f"
+  EXPECT_EQ_STRING("f", lept_get_object_key(&v, 1),
+                   lept_get_object_key_length(&v, 1));
+  EXPECT_EQ_INT(LEPT_FALSE, lept_get_type(lept_get_object_value(&v, 1)));
+  // no.2 member "t"
+  EXPECT_EQ_STRING("t", lept_get_object_key(&v, 2),
+                   lept_get_object_key_length(&v, 2));
+  EXPECT_EQ_INT(LEPT_TRUE, lept_get_type(lept_get_object_value(&v, 2)));
+  // no.3 member "i"
+  EXPECT_EQ_STRING("i", lept_get_object_key(&v, 3),
+                   lept_get_object_key_length(&v, 3));
+  EXPECT_EQ_INT(LEPT_NUMBER, lept_get_type(lept_get_object_value(&v, 3)));
+  EXPECT_EQ_DOUBLE(123.0, lept_get_number(lept_get_object_value(&v, 3)));
+  // no.4 member "s"
+  EXPECT_EQ_STRING("s", lept_get_object_key(&v, 4),
+                   lept_get_object_key_length(&v, 4));
+  EXPECT_EQ_INT(LEPT_STRING, lept_get_type(lept_get_object_value(&v, 4)));
+  EXPECT_EQ_STRING("abc", lept_get_string(lept_get_object_value(&v, 4)),
+                   lept_get_string_length(lept_get_object_value(&v, 4)));
+  // no.5 member "a"
+  EXPECT_EQ_STRING("a", lept_get_object_key(&v, 5),
+                   lept_get_object_key_length(&v, 5));
+  lept_value *value_in_json = lept_get_object_value(&v, 5);
+  EXPECT_EQ_INT(LEPT_ARRAY, lept_get_type(value_in_json));
+  EXPECT_EQ_SIZE_T((size_t)3, lept_get_array_size(value_in_json));
+  for (size_t i = 0; i < 3; ++i)
+    EXPECT_EQ_DOUBLE(1.0 + i,
+                     lept_get_number(lept_get_array_element(value_in_json, i)));
+  // no.6 member "o"
+  EXPECT_EQ_STRING("o", lept_get_object_key(&v, 6),
+                   lept_get_object_key_length(&v, 6));
+  value_in_json = lept_get_object_value(&v, 6);
+  EXPECT_EQ_INT(LEPT_OBJECT, lept_get_type(value_in_json));
+  EXPECT_EQ_SIZE_T((size_t)3, lept_get_object_size(value_in_json));
+  char sub_key[] = "0";
+  for (size_t i = 0; i < 3; ++i) {
+    sub_key[0] = '1' + i;
+    EXPECT_EQ_STRING(sub_key, lept_get_object_key(value_in_json, i),
+                     lept_get_object_key_length(value_in_json, i));
+    EXPECT_EQ_DOUBLE(1.0 + i,
+                     lept_get_number(lept_get_object_value(value_in_json, i)));
+  }
+  lept_free(&v);
+}
+
+static void test_parse_miss_key() {
+  TEST_ERROR(LEPT_PARSE_MISS_KEY, "{:1,");
+  TEST_ERROR(LEPT_PARSE_MISS_KEY, "{1:1,");
+  TEST_ERROR(LEPT_PARSE_MISS_KEY, "{true:1,");
+  TEST_ERROR(LEPT_PARSE_MISS_KEY, "{false:1,");
+  TEST_ERROR(LEPT_PARSE_MISS_KEY, "{null:1,");
+  TEST_ERROR(LEPT_PARSE_MISS_KEY, "{[]:1,");
+  TEST_ERROR(LEPT_PARSE_MISS_KEY, "{{}:1,");
+  TEST_ERROR(LEPT_PARSE_MISS_KEY, "{\"a\":1,");
+}
+
+static void test_parse_miss_colon() {
+  TEST_ERROR(LEPT_PARSE_MISS_COLON, "{\"a\"}");
+  TEST_ERROR(LEPT_PARSE_MISS_COLON, "{\"a\",\"b\"}");
+}
+
+static void test_parse_miss_comma_or_curly_bracket() {
+  TEST_ERROR(LEPT_PARSE_MISS_COMMA_OR_CURLY_BRACKET, "{\"a\":1");
+  TEST_ERROR(LEPT_PARSE_MISS_COMMA_OR_CURLY_BRACKET, "{\"a\":1]");
+  TEST_ERROR(LEPT_PARSE_MISS_COMMA_OR_CURLY_BRACKET, "{\"a\":1 \"b\"");
+  TEST_ERROR(LEPT_PARSE_MISS_COMMA_OR_CURLY_BRACKET, "{\"a\":{}");
+}
+
 static void test_parse() {
   test_parse_null();
   test_parse_true();
@@ -272,6 +366,10 @@ static void test_parse() {
   test_parse_invalid_string_escape();
   test_parse_invalid_string_char();
   test_parse_array();
+  test_parse_miss_key();
+  test_parse_miss_colon();
+  test_parse_miss_comma_or_curly_bracket();
+  test_parse_object();
 
   test_access_string();
   test_access_boolean();
