@@ -199,10 +199,7 @@ static int lept_parse_string_raw(lept_context *c, char **str, size_t *len) {
     switch (ch) {
       case '\"':
         *len = c->top - head;
-        *str = malloc(sizeof(char) * (*len + 1));
-        memcpy(*str, lept_context_pop(c, *len), *len);
-        (*str)[*len] = '\0';
-        // lept_set_string(v, (char *)lept_context_pop(c, len), len);
+        *str = (char *)lept_context_pop(c, *len);
         c->json = p;
         return LEPT_PARSE_OK;
       case '\0':
@@ -250,8 +247,7 @@ static int lept_parse_string(lept_context *c, lept_value *v) {
   size_t len;
   if((ret = lept_parse_string_raw(c, &s, &len)) == LEPT_PARSE_OK) {
     lept_set_string(v, s, len);
-    free(s);
-    s = NULL;
+    // s = NULL;
   }
   return ret;
 }
@@ -311,22 +307,27 @@ static int lept_parse_object(lept_context *c, lept_value *v) {
     v->u.o.m = NULL;
     return LEPT_PARSE_OK;
   }
+  m.k = NULL;
   while (1) {
+    char *str;
     lept_init(&m.v);
     if (*c->json != '\"') {
       ret = LEPT_PARSE_MISS_KEY;
       break;
     }
-    if ((ret = lept_parse_string_raw(c, &m.k, &m.klen)) != LEPT_PARSE_OK) break;
+    if ((ret = lept_parse_string_raw(c, &str, &m.klen)) != LEPT_PARSE_OK)
+      break;
+    memcpy(m.k = (char *)malloc(m.klen + 1), str, m.klen);
+    m.k[m.klen] = '\0';
     lept_parse_whitespace(c);
     if (*c->json != ':') {
-      free(m.k); // right?
       ret = LEPT_PARSE_MISS_COLON;
       break;
     }
     ++c->json;
     lept_parse_whitespace(c);
-    if ((ret = lept_parse_value(c, &m.v)) != LEPT_PARSE_OK) break;
+    if ((ret = lept_parse_value(c, &m.v)) != LEPT_PARSE_OK)
+      break;
     memcpy(lept_context_push(c, sizeof(lept_member)), &m, sizeof(lept_member));
     ++size;
     m.k = NULL;
@@ -339,18 +340,19 @@ static int lept_parse_object(lept_context *c, lept_value *v) {
       v->type = LEPT_OBJECT;
       v->u.o.size = size;
       size *= sizeof(lept_member);
-      memcpy(v->u.o.m = malloc(size), lept_context_pop(c, size), size);
+      memcpy(v->u.o.m = (lept_member *)malloc(size), lept_context_pop(c, size), size);
       return LEPT_PARSE_OK;
     } else {
       ret = LEPT_PARSE_MISS_COMMA_OR_CURLY_BRACKET;
       break;
     }
   }
+  free(m.k);
   for (size_t i = 0; i < size; ++i) {
     lept_member *free_m = (lept_member *)lept_context_pop(c, sizeof(lept_member));
     free(free_m->k);
-    // lept_free(&free_m->v);
   }
+  v->type = LEPT_NULL;
   return ret;
 }
 

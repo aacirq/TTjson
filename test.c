@@ -96,6 +96,7 @@ static void test_parse_invalid_value() {
   TEST_ERROR(LEPT_PARSE_INVALID_VALUE, "nul");
   TEST_ERROR(LEPT_PARSE_INVALID_VALUE, "n");
   TEST_ERROR(LEPT_PARSE_INVALID_VALUE, "?");
+
   // invalid number
   TEST_ERROR(LEPT_PARSE_INVALID_VALUE, "+0");
   TEST_ERROR(LEPT_PARSE_INVALID_VALUE, "+1");
@@ -111,6 +112,10 @@ static void test_parse_invalid_value() {
   // invalid array
   TEST_ERROR(LEPT_PARSE_INVALID_VALUE, "[1,]");
   TEST_ERROR(LEPT_PARSE_INVALID_VALUE, "[\"a\", nul]");
+
+  // invalid object
+  TEST_ERROR(LEPT_PARSE_INVALID_VALUE, "{\"n\" : nul}");
+  TEST_ERROR(LEPT_PARSE_INVALID_VALUE, "{\"t\" : true, \"f\" : fals}");
 }
 
 static void test_parse_root_not_singular() {
