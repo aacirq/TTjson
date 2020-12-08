@@ -553,3 +553,71 @@ int lept_stringify(const lept_value *v, char **json, size_t *length) {
   *json = c.stack;
   return LEPT_STRINGIFY_OK;
 }
+
+#define LEPT_KEY_NOT_EXIST ((size_t)-1)
+
+size_t lept_find_object_index(const lept_value *v, const char *key, size_t klen) {
+  assert(v != NULL && v->type == LEPT_OBJECT && key != NULL);
+  for (size_t i = 0; i < v->u.o.size; ++i)
+    if (v->u.o.m[i].klen == klen && memcmp(v->u.o.m[i].k, key, klen) == 0)
+      return i;
+  return LEPT_KEY_NOT_EXIST;
+}
+
+lept_value *lept_find_object_value(lept_value *v, const char *key, size_t klen) {
+  size_t index = lept_find_object_index(v, key, klen);
+  return index != LEPT_KEY_NOT_EXIST ? &v->u.o.m[index].v : NULL;
+}
+
+int lept_is_equal(const lept_value *lhs, const lept_value *rhs) {
+  assert(lhs != NULL && rhs != NULL);
+  if (lhs->type != rhs->type)
+    return 0;
+  switch (lhs->type) {
+    case LEPT_STRING:
+      return lhs->u.s.len == rhs->u.s.len &&
+             memcmp(lhs->u.s.s, rhs->u.s.s, lhs->u.s.len) == 0;
+    case LEPT_NUMBER:
+      return lhs->u.n == rhs->u.n;
+    case LEPT_ARRAY:
+      if (lhs->u.a.size != rhs->u.a.size)
+        return 0;
+      for (size_t i = 0; i < lhs->u.a.size; ++i)
+        if (lept_is_equal(lhs->u.a.e + i, rhs->u.a.e + i) == 0)
+          return 0;
+      return 1;
+    case LEPT_OBJECT:
+      if (lhs->u.o.size != rhs->u.o.size)
+        return 0;
+      for (size_t i = 0; i < lhs->u.o.size; ++i) {
+        if (lhs->u.o.m[i].klen != rhs->u.o.m[i].klen)
+          return 0;
+        if (memcmp(lhs->u.o.m[i].k, rhs->u.o.m[i].k, lhs->u.o.m[i].klen) != 0)
+          return 0;
+        if (lept_is_equal(&lhs->u.o.m[i].v, &rhs->u.o.m[i].v) == 0)
+          return 0;
+      }
+      return 1;
+    default:
+      return 1;
+  }
+}
+
+void lept_copy(lept_value *dst, const lept_value *src) {
+  assert(dst != NULL && src != NULL);
+  switch (src->type) {
+    case LEPT_STRING:
+      lept_set_string(dst, src->u.s.s, src->u.s.len);
+      break;
+    case LEPT_ARRAY:
+      // TODO
+      break;
+    case LEPT_OBJECT:
+      // TODO
+      break;
+    default:
+      lept_free(dst);
+      memcpy(dst, src, sizeof(lept_value));
+      break;
+  }
+}

@@ -77,4 +77,15 @@ lept_value *lept_get_object_value(const lept_value *v, size_t index);
 
 int lept_stringify(const lept_value *v, char **json, size_t *length);
 
+size_t lept_find_object_index(const lept_value *v, const char *key, size_t klen);
+lept_value *lept_find_object_value(lept_value *v, const char *key, size_t klen);
+int lept_is_equal(const lept_value *lhs, const lept_value *rhs);
+
+void lept_copy(lept_value *dst, const lept_value *src); // TODO: finised partly
+void lept_move(lept_value *dst, lept_value *src); // TODO
+void lept_swap(lept_value *dst, lept_value *src); // TODO
+
+// TODO: 修改lept_value的结构为动态数组
+// TODO: 修改后的配套设置数组的函数
+
 #endif // LEPTJSON_LEPTJSON_H

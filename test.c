@@ -274,16 +274,16 @@ static void test_parse_object() {
   lept_free(&v);
 
   lept_init(&v);
-  char *json_txt = "{\"n\":null,\"f\":false,\"t\":true,\"i\":123,\"s\":\"abc\",\"a\":[1,2,3],\"o\":{\"1\":1,\"2\":2,\"3\":3}}";
-  // char *json_txt = " { "
-  //                  "    \"n\" : null , "
-  //                  "    \"f\" : false , "
-  //                  "    \"t\" : true , "
-  //                  "    \"i\" : 123 , "
-  //                  "    \"s\" : \"abc\", "
-  //                  "    \"a\" : [ 1, 2, 3 ],"
-  //                  "    \"o\" : { \"1\" : 1, \"2\" : 2, \"3\" : 3 }"
-  //                  " } ";
+  // char *json_txt = "{\"n\":null,\"f\":false,\"t\":true,\"i\":123,\"s\":\"abc\",\"a\":[1,2,3],\"o\":{\"1\":1,\"2\":2,\"3\":3}}";
+  char *json_txt = " { "
+                   "    \"n\" : null , "
+                   "    \"f\" : false , "
+                   "    \"t\" : true , "
+                   "    \"i\" : 123 , "
+                   "    \"s\" : \"abc\", "
+                   "    \"a\" : [ 1, 2, 3 ],"
+                   "    \"o\" : { \"1\" : 1, \"2\" : 2, \"3\" : 3 }"
+                   " } ";
   EXPECT_EQ_INT(LEPT_PARSE_OK, lept_parse(&v, json_txt));
   EXPECT_EQ_INT(LEPT_OBJECT, lept_get_type(&v));
   EXPECT_EQ_SIZE_T((size_t)7, lept_get_object_size(&v));
