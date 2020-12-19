@@ -5,50 +5,50 @@
 #define lept_set_null(v) lept_free(v)
 
 typedef enum {
-  LEPT_NULL,
-  LEPT_FALSE,
-  LEPT_TRUE,
-  LEPT_NUMBER,
-  LEPT_STRING,
-  LEPT_ARRAY,
-  LEPT_OBJECT
+    LEPT_NULL,
+    LEPT_FALSE,
+    LEPT_TRUE,
+    LEPT_NUMBER,
+    LEPT_STRING,
+    LEPT_ARRAY,
+    LEPT_OBJECT
 } lept_type;
 
 enum {
-  LEPT_PARSE_OK = 0,
-  LEPT_PARSE_EXPECT_VALUE,
-  LEPT_PARSE_INVALID_VALUE,
-  LEPT_PARSE_ROOT_NOT_SINGULAR,
-  LEPT_PARSE_NUMBER_TOO_BIG,
-  LEPT_PARSE_MISS_QUOTATION_MARK,
-  LEPT_PARSE_INVALID_STRING_ESCAPE,
-  LEPT_PARSE_INVALID_STRING_CHAR,
-  LEPT_PARSE_INVALID_UNICODE_SURROGATE,
-  LEPT_PARSE_INVALID_UNICODE_HEX,
-  LEPT_PARSE_MISS_COMMA_OR_SQUARE_BRACKET,
-  LEPT_PARSE_MISS_KEY,
-  LEPT_PARSE_MISS_COLON,
-  LEPT_PARSE_MISS_COMMA_OR_CURLY_BRACKET,
-  LEPT_STRINGIFY_OK
+    LEPT_PARSE_OK = 0,
+    LEPT_PARSE_EXPECT_VALUE,
+    LEPT_PARSE_INVALID_VALUE,
+    LEPT_PARSE_ROOT_NOT_SINGULAR,
+    LEPT_PARSE_NUMBER_TOO_BIG,
+    LEPT_PARSE_MISS_QUOTATION_MARK,
+    LEPT_PARSE_INVALID_STRING_ESCAPE,
+    LEPT_PARSE_INVALID_STRING_CHAR,
+    LEPT_PARSE_INVALID_UNICODE_SURROGATE,
+    LEPT_PARSE_INVALID_UNICODE_HEX,
+    LEPT_PARSE_MISS_COMMA_OR_SQUARE_BRACKET,
+    LEPT_PARSE_MISS_KEY,
+    LEPT_PARSE_MISS_COLON,
+    LEPT_PARSE_MISS_COMMA_OR_CURLY_BRACKET,
+    LEPT_STRINGIFY_OK
 };
 
 typedef struct lept_value lept_value;
 typedef struct lept_member lept_member;
 
 struct lept_value {
-  union {
-    struct { lept_member *m; size_t size; } o;
-    struct { lept_value *e; size_t size; } a;
-    struct { char *s; size_t len; } s;
-    double n;
-  } u;
-  lept_type type;
+    union {
+        struct { lept_member *m; size_t size; } o;
+        struct { lept_value *e; size_t size; } a;
+        struct { char *s; size_t len; } s;
+        double n;
+    } u;
+    lept_type type;
 };
 
 struct lept_member {
-  char *k;
-  size_t klen;
-  lept_value v;
+    char *k;
+    size_t klen;
+    lept_value v;
 };
 
 int lept_parse(lept_value *v, const char *json);
